@@ -1,0 +1,24 @@
+services:
+  review-assignment:
+    build: .
+    image: review-assignment:latest
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    environment:
+      # default number of reviews required per manuscript
+      DEFAULT_REVIEWS_PER_MANUSCRIPT: "2"
+      # request-size guard rails
+      MAX_MANUSCRIPTS: "10000"
+      MAX_REVIEWERS: "10000"
+    healthcheck:
+      # stdlib only: no curl needed in the slim image
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"
+      interval: 10s
+      timeout: 4s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
